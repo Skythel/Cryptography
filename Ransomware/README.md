@@ -4,6 +4,8 @@ Encrypts x bytes of a file for every x*y bytes.
 
 Adapted from https://github.com/febimudiyanto/python-project/tree/main/simple-ransomware  
 
+![image](https://user-images.githubusercontent.com/14922694/202434993-28899f34-218f-4214-a746-4702eca7bd22.png)
+
 ## Added Features
 An RSA-2048 key pair is generated for both the server and client. (In a real scenario the ransomware program would be distributed containing the server public key to a victim, and the server private key will be presumably sent to the victim upon payment.)  
 The client private key is encrypted using the server public key, making it necessary to obtain the server private key for decryption.  
