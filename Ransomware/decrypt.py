@@ -10,7 +10,7 @@ chunk_size = 4 # integer value of the size of chunks that files will be split in
 intermittent_size = 4 # integer value of how many unencrypted chunks per encrypted chunk
 fileExtension = '.decrypted' # file extension for decrypted files
 includeExtension = ['.r4ns0m3d'] # file extensions to decrypt
-clean_encrypted_files = False # whether the program will delete encrypted files after encryption
+clean_encrypted_files = False # whether the program will delete encrypted files after decryption
 clean_decrypted_files = True # whether the program will delete pre-existing decrypted files upon startup (useful to clear decrypted files of a previous runtime)
 
 def scanRecurse(baseDir):
@@ -64,7 +64,6 @@ def decryptFile(dataFile):
         encrypted_length = key.size_in_bytes()+16+16
         plain_length = chunk_size*(intermittent_size-1)
         print(f"Length of each block: {encrypted_length + plain_length}")
-
         arr = (key.size_in_bytes(), 16, 16, chunk_size, plain_length)
         
         # iterate through every "block" of file which contains the encrypted chunk_size bytes and plaintext of (chunk_size*(intermittent_size-1)) bytes
